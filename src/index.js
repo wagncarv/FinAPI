@@ -22,6 +22,19 @@ function vefifyIfExistsAccountCPF(request, response, next){
 }
 //END MIDDLEWARE
 
+function getBalance(statement){
+   const balance =  statement.reduce((acc, operation) => {
+       if(operation.type == 'credit'){
+           return acc + operation.amount
+
+       }else{
+        return acc - operation.amount
+       }
+
+   }, 0)
+    return balance
+}
+
 app.post("/account", (request, response) => {
     const { cpf, name } = request.body
 
@@ -66,6 +79,27 @@ app.post("/deposit", vefifyIfExistsAccountCPF, (request, response) =>{
     }
 
     customer.statement.push(statementOperation)
+    return response.status(201).send({message: `Deposited $ ${amount}`})
+})
+
+app.post("/withdraw", vefifyIfExistsAccountCPF, (request, response) => {
+    const { amount } = request.body
+    const { customer } = request
+    const balance = getBalance(customer.statement)
+
+    if(balance < amount){
+        return response.status(400).json({error: "Insufficient funds"}) 
+    }
+
+    const statementOperation = {
+        amount,
+        created_at: new Date(),
+        type: 'debit'
+    }
+
+    customer.statement.push(statementOperation)
+
+    return response.status(201).send({message: `You withdrew $${amount}`})
 })
 
 app.listen(3333)
