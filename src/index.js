@@ -116,4 +116,24 @@ app.post("/withdraw", vefifyIfExistsAccountCPF, (request, response) => {
     return response.status(201).send({message: `You withdrew $${amount}`})
 })
 
+app.put("/account", vefifyIfExistsAccountCPF, (request, response) => {
+    const { name } = request.body
+    const { customer } = request
+    customer.name = name
+
+    return response.status(201).send({message: `name changed to ${name}`})
+})
+
+app.get("/account", vefifyIfExistsAccountCPF, (request, response) => {
+    const { customer } = request
+    return response.json(customer)
+})
+
+app.delete("/account", vefifyIfExistsAccountCPF, (request, response) => {
+    const { customer } = request
+    customers.splice(customers.indexOf(customer), 1)
+
+    return response.status(200).json(customers)
+});
+
 app.listen(3333)
